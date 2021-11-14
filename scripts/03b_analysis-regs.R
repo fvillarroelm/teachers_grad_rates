@@ -5,6 +5,9 @@ if(!require("pacman")){install.packages("pacman")}
 # load libraries
 pacman::p_load(tidyverse, data.table, janitor, here, magrittr, openxlsx, broom, margins)
 
+# load function
+source(here("scripts", "00_aux_functions.R"))
+
 # load data
 teachers_data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv"))
 
@@ -43,6 +46,8 @@ df_logit <- teachers_data %>% select(titulado,
                                      matches("ptje_mat"),
                                      nem)
 
+
+
 # logit
 logit_grad_on_time <- glm(titulado_oportuno ~ ., data = df_logit %>% select(-titulado), family = binomial(link = "logit"))
 
@@ -54,42 +59,11 @@ sum_margins_grad_on_time <- tidy(margins(logit_grad_on_time))
 sum_margins_grad_total <- tidy(margins(logit_grad_total))
 
 # format table
-reg_expr <- "dependencia_cat|q_nse|rango_acreditacion_cat|teaching_area|tipo_inst_3_cat|d_mujer_alu|d_estudia_otra_region"
+margins_table_grad_on_time <- f_format_margins_table(sum_margins_grad_on_time)
 
-margins_table_grad_on_time <- 
-    sum_margins_grad_on_time %>% select(term, estimate, p.value) %>% 
-                          mutate(term = term %>% str_remove(reg_expr) %>% 
-                                                     recode("nem" = "NEM",
-                                                            "ptje_lect2m_alu" = "Ptje. SIMCE Lect.",
-                                                            "ptje_mate2m_alu" = "Ptje. SIMCE Mat.",
-                                                            "d_sede_RM" = "Universidad de RM",
-                                                            "d_phys_ed" = "Educ. Física"),
-                                 estimate = estimate %>% round(4) %>% 
-                                        format(., scientific = F) %>% 
-                                        as.character() %>% 
-                                        {case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(., "*"),
-                                                  p.value > 0.01 & p.value <= 0.05 ~ paste0(., "**"),
-                                                  p.value <= 0.01 ~ paste0(., "***"),
-                                                  TRUE ~ paste0(.))}) %>%
-    select(-p.value)
+margins_table_grad_total <- f_format_margins_table(sum_margins_grad_total)
 
-margins_table_grad_total <- 
-    sum_margins_grad_total %>% select(term, estimate, p.value) %>% 
-    mutate(term = term %>% str_remove(reg_expr) %>% 
-               recode("nem" = "NEM",
-                      "ptje_lect2m_alu" = "Ptje. SIMCE Lect.",
-                      "ptje_mate2m_alu" = "Ptje. SIMCE Mat.",
-                      "d_sede_RM" = "Universidad de RM",
-                      "d_phys_ed" = "Educ. Física"),
-           estimate = estimate %>% round(4) %>% 
-               format(., scientific = F) %>% 
-               as.character() %>% 
-               {case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(., "*"),
-                          p.value > 0.01 & p.value <= 0.05 ~ paste0(., "**"),
-                          p.value <= 0.01 ~ paste0(., "***"),
-                          TRUE ~ paste0(.))}) %>%
-    select(-p.value)
-
+# bind tables
 final_table <- margins_table_grad_on_time %>% bind_cols(margins_table_grad_total %>% select(-1)) %>%
     rename("on_time" = "estimate...2",
            "total" = "estimate...3") %>%
