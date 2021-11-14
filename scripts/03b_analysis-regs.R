@@ -70,7 +70,8 @@ margins_table_grad_on_time <-
                                         {case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(., "*"),
                                                   p.value > 0.01 & p.value <= 0.05 ~ paste0(., "**"),
                                                   p.value <= 0.01 ~ paste0(., "***"),
-                                                  TRUE ~ paste0(.))})
+                                                  TRUE ~ paste0(.))}) %>%
+    select(-p.value)
 
 margins_table_grad_total <- 
     sum_margins_grad_total %>% select(term, estimate, p.value) %>% 
@@ -86,8 +87,16 @@ margins_table_grad_total <-
                {case_when(p.value > 0.05 & p.value <= 0.1 ~ paste0(., "*"),
                           p.value > 0.01 & p.value <= 0.05 ~ paste0(., "**"),
                           p.value <= 0.01 ~ paste0(., "***"),
-                          TRUE ~ paste0(.))})
+                          TRUE ~ paste0(.))}) %>%
+    select(-p.value)
 
+final_table <- margins_table_grad_on_time %>% bind_cols(margins_table_grad_total %>% select(-1)) %>%
+    rename("on_time" = "estimate...2",
+           "total" = "estimate...3") %>%
+    bind_rows(data.frame(term = "Observaciones", 
+                         on_time = nrow(df_logit) %>% as.character(), 
+                         total = nrow(df_logit) %>% as.character())
+              )
 
 # export on-time grad rates ----
 
@@ -95,27 +104,20 @@ margins_table_grad_total <-
 excel_file <- loadWorkbook(here("tables", "03_descr-and-regs-tables.xlsx"))
 
 # pull all data from sheet
-excel_table <- read.xlsx(excel_file, sheet = "logit_reg") %>% select(-1)
+excel_table <- read.xlsx(excel_file, sheet = "logit_reg") %>% select(-1) %>% drop_na()
 
-# edit names
-remove <- c("Sociodemográficas", 
-            "Tipo de establecimiento", 
-            "Quintil de Ingresos", 
-            "Otras", 
-            "Institucionales", 
-            "Tipo de Institución", 
-            "Tipo de acreditación institucional")
-table_grad_on_time <- 
-    table_grad_on_time %>% mutate(name = excel_table %>% filter(!name %in% remove) %>% pull(name))
+# set col names
+final_table <- 
+final_table %>% set_colnames(names(excel_table))
 
 # join
 excel_table <-
-    excel_table %>% select(-2:-4) %>% left_join(y = table_grad_on_time, by = "name")
+    excel_table %>% select(-2:-3) %>% left_join(y = final_table, by = "term")
 
 # put the data back into the workbook
-writeData(excel_file, sheet = "on-time_grad_rates", excel_table)
+writeData(excel_file, sheet = "logit_reg", excel_table, startCol = 2)
 
 # save to disk
 saveWorkbook(excel_file, 
-             here("tables", "03_descr_tab01_total-and-on-time-grad-rates.xlsx"), 
+             here("tables", "03_descr-and-regs-tables.xlsx"), 
              overwrite = TRUE)
