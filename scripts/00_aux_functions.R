@@ -71,7 +71,7 @@ f_format_margins_table <- function(input){
                           "ptje_lect2m_alu" = "Ptje. SIMCE Lect.",
                           "ptje_mate2m_alu" = "Ptje. SIMCE Mat.",
                           "d_sede_RM" = "Universidad de RM",
-                          "d_phys_ed" = "Educ. Física"),
+                          "d_phys_ed" = "Educ. Fisica"),
                estimate = estimate %>% round(4) %>% 
                    format(., scientific = F) %>% 
                    as.character() %>% 
