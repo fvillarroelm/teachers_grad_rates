@@ -1,4 +1,4 @@
-#' this script generates the descriptive table 02 of the paper.
+#' this script generates the descriptive table 01 of the paper.
 rm(list = ls()) ; gc()
 if(!require("pacman")){install.packages("pacman")}
 
