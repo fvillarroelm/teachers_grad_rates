@@ -31,8 +31,8 @@ data %>% select(starts_with("titulado")) %>%
 n_obs <- data %>% nrow(.)
 
 # set value labels as values
-data <- data %>% mutate(dependencia_cat = as_factor(dependencia_cat),
-                            q_nse = as_factor(q_nse))
+data <- data %>% mutate(dependencia_cat = factor(dependencia_cat, levels = c("Municipal", "PS", "PP")),
+                            q_nse = factor(q_nse))
 
 demographic_section <- 
 data %>% group_by(dependencia_cat) %>% 
@@ -60,8 +60,7 @@ data %>% group_by(dependencia_cat) %>%
 # institutional ----
 
 # set value labels as values
-data <- data %>% mutate(rango_acreditacion_cat = as_factor(rango_acreditacion_cat),
-                        area_conocimiento_cat = as_factor(area_conocimiento_cat))
+data <- data %>% mutate(rango_acreditacion_cat = factor(rango_acreditacion_cat))
 
 
 institutional_section <- 
