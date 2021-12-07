@@ -19,7 +19,7 @@ data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv"
 # graduation rates (outcomes) ----
 
 graduation_rates <-
-data %>% select(starts_with("titulado")) %>%
+    data %>% select(starts_with("titulado")) %>%
     pivot_longer(everything()) %>%
     group_by(name) %>%
     summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
@@ -31,66 +31,65 @@ data %>% select(starts_with("titulado")) %>%
 n_obs <- data %>% nrow(.)
 
 # set value labels as values
-data <- data %>% mutate(dependencia_cat = as_factor(dependencia_cat),
-                            q_nse = as_factor(q_nse))
+data <- data %>% mutate(dependencia_cat = factor(dependencia_cat, levels = c("Municipal", "PS", "PP")),
+                        q_nse = factor(q_nse))
 
 demographic_section <- 
-data %>% group_by(dependencia_cat) %>% 
+    data %>% group_by(dependencia_cat) %>% 
     summarise(mean = n() / n_obs,
               sum = n_obs) %>% 
     ungroup() %>%
     rename(name = dependencia_cat) %>%
     rbind(NA) %>%
     bind_rows(
-                data %>% group_by(q_nse) %>%
-                    summarise(mean = n() / n_obs,
-                              sum = n_obs) %>%
-                    ungroup() %>%
-                    rename(name = q_nse)) %>%
-                    rbind(NA) %>%
+        data %>% group_by(q_nse) %>%
+            summarise(mean = n() / n_obs,
+                      sum = n_obs) %>%
+            ungroup() %>%
+            rename(name = q_nse)) %>%
+    rbind(NA) %>%
     bind_rows(
-                data %>% select(d_mujer_alu, d_estudia_otra_region) %>%
-                    pivot_longer(everything()) %>%
-                    group_by(name) %>%
-                    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
-                    rbind(NA, NA)
-                ) %>%
+        data %>% select(d_mujer_alu, d_estudia_otra_region) %>%
+            pivot_longer(everything()) %>%
+            group_by(name) %>%
+            summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
+            rbind(NA, NA)
+    ) %>%
     mutate(mean = round(mean, 3))
 
 # institutional ----
 
 # set value labels as values
-data <- data %>% mutate(rango_acreditacion_cat = as_factor(rango_acreditacion_cat),
-                        area_conocimiento_cat = as_factor(area_conocimiento_cat))
+data <- data %>% mutate(rango_acreditacion_cat = factor(rango_acreditacion_cat))
 
 
 institutional_section <- 
-data %>% group_by(tipo_inst_3) %>% 
+    data %>% group_by(tipo_inst_3) %>% 
     summarise(mean = n() / n_obs,
               sum = n_obs) %>%
     rename(name = tipo_inst_3) %>%
     ungroup() %>%
     bind_rows(
-                data %>% select(d_sede_RM) %>%
-                    pivot_longer(everything()) %>%
-                    group_by(name) %>%
-                    summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
-                    rbind(NA)
-                ) %>%
+        data %>% select(d_sede_RM) %>%
+            pivot_longer(everything()) %>%
+            group_by(name) %>%
+            summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
+            rbind(NA)
+    ) %>%
     bind_rows(
-                data %>% group_by(rango_acreditacion_cat) %>% 
-                    summarise(mean = n() / n_obs,
-                              sum = n_obs) %>%
-                    ungroup() %>%
-                    rename(name = rango_acreditacion_cat) %>%
-                    rbind(NA)
-                ) %>%
+        data %>% group_by(rango_acreditacion_cat) %>% 
+            summarise(mean = n() / n_obs,
+                      sum = n_obs) %>%
+            ungroup() %>%
+            rename(name = rango_acreditacion_cat) %>%
+            rbind(NA)
+    ) %>%
     mutate(mean = round(mean, 3))
 
 # academic ----
 
 academic_section <- 
-data %>% select(starts_with("ptje"), nem) %>%
+    data %>% select(starts_with("ptje"), nem) %>%
     pivot_longer(everything()) %>%
     group_by(name) %>%
     summarise_all(.funs = list(mean = mean, sum = ~sum(!is.na(.))), na.rm = T) %>%
@@ -100,9 +99,9 @@ data %>% select(starts_with("ptje"), nem) %>%
 
 # join all sections ----
 table <- 
-graduation_rates %>% bind_rows(demographic_section) %>%
-                     bind_rows(institutional_section) %>%
-                     bind_rows(academic_section)
+    graduation_rates %>% bind_rows(demographic_section) %>%
+    bind_rows(institutional_section) %>%
+    bind_rows(academic_section)
 
 
 # overwrite results over existing table
