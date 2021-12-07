@@ -22,7 +22,10 @@ data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv"
            q_mate_max = max(ptje_mate2m_alu)) %>%
     ungroup() %>%
     mutate(q_and_range_lect = paste0(q_ptje_lect,"_", q_lect_min, "_", q_lect_max),
-           q_and_range_mate = paste0(q_ptje_mate, "_", q_mate_min, "_", q_mate_max))
+           q_and_range_mate = paste0(q_ptje_mate, "_", q_mate_min, "_", q_mate_max),
+           d_estudia_misma_region = ifelse(d_estudia_otra_region == "Estudiante no de 'regiÃ³n'", 1, 0),
+           d_hombre_alu = ifelse(d_mujer_alu == "Hombre", 1, 0),
+           d_sede_no_RM = ifelse(d_sede_RM == "No estudia en RM", 1, 0))
 
 # grad rates on-time ----
 
