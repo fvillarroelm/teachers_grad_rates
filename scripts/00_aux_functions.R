@@ -9,14 +9,20 @@ table_grad_rates <- function(grad_data, all_data){
                                                             "tipo_inst_3",
                                                             "d_mujer_alu",
                                                             "d_estudia_otra_region",
-                                                            "d_sede_RM")) %>% 
+                                                            "d_sede_RM",
+                                                            "q_and_range_lect",
+                                                            "q_and_range_mate",
+                                                            "nem_interval")) %>% 
                 select(matches("dependencia_cat.+"),
                        matches("q_nse.+"),
                        matches("d_estudia_otra_region_Estudiante de.*"),
                        matches("d_mujer_alu_M.+"),
                        matches("tipo_inst_3_U.+"),
                        matches("d_sede_RM_Est.+"),
-                       matches("rango_acreditacion_cat.+")) %>%
+                       matches("rango_acreditacion_cat.+"),
+                       matches("q_and_range_lect.+"),
+                       matches("q_and_range_mate.+"),
+                       matches("nem_interval.+")) %>%
                 summarise_all(~sum(.)) 
         ) %>%
         clean_names()
@@ -31,14 +37,20 @@ table_grad_rates <- function(grad_data, all_data){
                                                            "tipo_inst_3",
                                                            "d_mujer_alu",
                                                            "d_estudia_otra_region",
-                                                           "d_sede_RM")) %>% 
+                                                           "d_sede_RM",
+                                                           "q_and_range_lect",
+                                                           "q_and_range_mate",
+                                                           "nem_interval")) %>% 
                 select(matches("dependencia_cat.+"),
                        matches("q_nse.+"),
                        matches("d_estudia_otra_region_Estudiante de.*"),
                        matches("d_mujer_alu_M.+"),
                        matches("tipo_inst_3_U.+"),
                        matches("d_sede_RM_Est.+"),
-                       matches("rango_acreditacion_cat.+")) %>%
+                       matches("rango_acreditacion_cat.+"),
+                       matches("q_and_range_lect.+"),
+                       matches("q_and_range_mate.+"),
+                       matches("nem_interval.+")) %>%
                 summarise_all(~sum(.))
         ) %>%
         clean_names()
@@ -48,7 +60,8 @@ table_grad_rates <- function(grad_data, all_data){
     # the solution is to add the column (= 0) "manually" when the var does not exist.
     # it is not really a "0", it is a boolean (FALSE), which is arithmetically equal to 0 .
     if (length(setdiff(names(all), names(grads))) > 0){
-        grads <- grads %>% add_column(!all[setdiff(names(all), names(.))])
+        grads[setdiff(names(all), names(grads))] <- 0
+        grads <- grads %>% select(names(all))
     } else{grads <- grads}
     
     #column_total_grad_rates <- 
