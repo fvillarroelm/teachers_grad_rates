@@ -9,7 +9,20 @@ pacman::p_load(tidyverse, data.table, janitor, here, haven, magrittr, openxlsx, 
 source(here("scripts", "00_aux_functions.R"))
 
 # load data
-data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv"))
+data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv")) %>%
+    mutate(q_ptje_lect = paste0("q-", ptje_lect2m_alu %>% ntile(5)),
+           q_ptje_mate = paste0("q-", ptje_mate2m_alu %>% ntile(5)),
+           nem_interval = nem %>% cut(breaks = sprintf("%0.1f", c(4, seq(4.5, 6.5, 0.5), 7)), include.lowest = T)) %>%
+    group_by(q_ptje_lect) %>%
+    mutate(q_lect_min = min(ptje_lect2m_alu),
+           q_lect_max = max(ptje_lect2m_alu)) %>%
+    ungroup() %>%
+    group_by(q_ptje_mate) %>%
+    mutate(q_mate_min = min(ptje_mate2m_alu),
+           q_mate_max = max(ptje_mate2m_alu)) %>%
+    ungroup() %>%
+    mutate(q_and_range_lect = paste0(q_ptje_lect,"_", q_lect_min, "_", q_lect_max),
+           q_and_range_mate = paste0(q_ptje_mate, "_", q_mate_min, "_", q_mate_max))
 
 # grad rates on-time ----
 
@@ -17,8 +30,6 @@ data <- fread(here("data", "proc", "working_dataset_teachers_cohorte4m_2010.csv"
 on_time_grad_phys_ed <- data %>% filter(titulado_oportuno == 1 & teaching_area == "phys ed")
 
 all_phys_ed <- data %>% filter(teaching_area == "phys ed")
-
-on_time_grad_phys_ed %>% summarise(total = nrow(.))
 
 # data for non-physical education teachers
 on_time_grad_other_ed <- data %>% filter(titulado_oportuno == 1 & teaching_area == "other ed")
@@ -60,7 +71,11 @@ remove <- c("Sociodemográficas",
             "Otras", 
             "Institucionales", 
             "Tipo de Institución", 
-            "Tipo de acreditación institucional")
+            "Tipo de acreditación institucional",
+            "Académicas",
+            "SIMCE LENG",
+            "SIMCE MAT",
+            "NEM")
 table_grad_on_time <- 
 table_grad_on_time %>% mutate(name = excel_table %>% filter(!name %in% remove) %>% pull(name))
 
@@ -122,7 +137,11 @@ remove <- c("Sociodemográficas",
             "Otras", 
             "Institucionales", 
             "Tipo de Institución", 
-            "Tipo de acreditación institucional")
+            "Tipo de acreditación institucional",
+            "Académicas",
+            "SIMCE LENG",
+            "SIMCE MAT",
+            "NEM")
 table_total_grad <- 
     table_total_grad %>% mutate(name = excel_table %>% filter(!name %in% remove) %>% pull(name))
 
